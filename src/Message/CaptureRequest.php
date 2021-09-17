@@ -38,14 +38,13 @@ class CaptureRequest extends AbstractRequest
 
     public function sendData($data)
     {
-        $httpRequest = $this->httpClient->post(
-            $this->getEndpoint().'/api/v1/bills',
-            array('Accept' => 'application/json'),
+        $httpResponse = $this->httpClient->request(
+            'POST',
+            $this->getEndpoint() . '/api/v1/bills',
+            array('Accept' => 'application/json', 'Authorization' => 'Bearer ' . $this->getAccessToken()),
             Gateway::generateQueryString($data)
         );
 
-        $httpResponse = $httpRequest->setHeader('Authorization', 'bearer '.$this->getAccessToken())->send();
-
-        return $this->response = new CaptureResponse($this, $httpResponse->json());
+        return $this->response = new CaptureResponse($this, json_decode($httpResponse->getBody()->getContents()));
     }
 }

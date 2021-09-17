@@ -39,16 +39,17 @@ class CompleteAuthorizeRequest extends AbstractRequest
 
     public function sendData($data)
     {
-        $httpRequest = $this->httpClient->post(
-            $this->getEndpoint().'/api/v1/confirm',
-            array('Accept' => 'application/json'),
+        $credentials = base64_encode($this->getAppId() . ':' . $this->getAppSecret());
+        $httpResponse = $this->httpClient->request(
+            'POST',
+            $this->getEndpoint() . '/api/v1/confirm',
+            array('Accept' => 'application/json', 'Authorization' => 'Basic ' . $credentials),
             Gateway::generateQueryString($data)
         );
-        $httpResponse = $httpRequest->setAuth($this->getAppId(), $this->getAppSecret())->send();
 
         return $this->response = new CompleteAuthorizeResponse(
             $this,
-            $httpResponse->json(),
+            json_decode($httpResponse->getBody()->getContents()),
             $this->httpRequest->get('resource_id')
         );
     }

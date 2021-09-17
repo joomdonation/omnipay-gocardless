@@ -33,26 +33,17 @@ class CompletePurchaseRequest extends AbstractRequest
 
     public function sendData($data)
     {
-        // don't throw exceptions for 4xx errors
-        $this->httpClient->getEventDispatcher()->addListener(
-            'request.error',
-            function ($event) {
-                if ($event['response']->isClientError()) {
-                    $event->stopPropagation();
-                }
-            }
-        );
-
-        $httpRequest = $this->httpClient->post(
-            $this->getEndpoint().'/api/v1/confirm',
-            array('Accept' => 'application/json'),
+        $credentials = base64_encode($this->getAppId() . ':' . $this->getAppSecret());
+        $httpResponse = $this->httpClient->request(
+            'POST',
+            $this->getEndpoint() . '/api/v1/confirm',
+            array('Accept' => 'application/json', 'Authorization' => 'Basic ' . $credentials),
             Gateway::generateQueryString($data)
         );
-        $httpResponse = $httpRequest->setAuth($this->getAppId(), $this->getAppSecret())->send();
 
         return $this->response = new CompletePurchaseResponse(
             $this,
-            $httpResponse->json(),
+            json_decode($httpResponse->getBody()->getContents()),
             $this->httpRequest->get('resource_id')
         );
     }
